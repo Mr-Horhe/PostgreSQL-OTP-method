@@ -6,7 +6,7 @@ MODULE_big = superextension
 EXTENSION  = superextension
 PGFILEDESC = superextension
 DATA = superextension--1.0.sql superextension.control
-OBJS = superextension.o
+OBJS = superextension.o mtwister.o
 PG_CONFIG = pg_config
 
 

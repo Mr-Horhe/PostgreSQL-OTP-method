@@ -10,6 +10,8 @@
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/bio.h>
+#include "mtwister.h"
+
 
 #define MAX_PASSWORD_LEN 1000
 #define MIN_PASSWORD_LEN 8
@@ -168,8 +170,8 @@ superfunction(PG_FUNCTION_ARGS)
 
 
         {
-            
-            srand(myContext_data->seed_num);
+            MTRand r = seedRand(myContext_data->seed_num);
+            //srand(myContext_data->seed_num);
             char allowed_chars[]="0123456789abcdefghkmnopqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ";
             char allowed_chars_9[]="0123456789";
             char allowed_chars_A[]="ABCDEFGHIJKLMNPQRSTUVWXYZ";
@@ -180,32 +182,32 @@ superfunction(PG_FUNCTION_ARGS)
                     if(i<strlen(myContext_data->mask)){
                         char mask_char = myContext_data->mask[i];
                         if(mask_char=='9'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_9)-1);
                             myContext_data->result[i]=allowed_chars_9[idx];
                         }else
                         if(mask_char=='A'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_A)-1);
                             myContext_data->result[i]=allowed_chars_A[idx];
                         }else
                         if(mask_char=='a'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_a)-1);
                             myContext_data->result[i]=allowed_chars_a[idx];
                         }else
                         if(mask_char=='#'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_Hash)-1);
                             myContext_data->result[i]=allowed_chars_Hash[idx];
                         }else{
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars)-1);
                             myContext_data->result[i]=allowed_chars[idx];
                         }
 
                     }else{
-                        int rnd = rand();
+                        int rnd = genRandLong(&r);
                         int idx = rnd % (sizeof(allowed_chars)-1);
                         myContext_data->result[i]=allowed_chars[idx];
                     }
