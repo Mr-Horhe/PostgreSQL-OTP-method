@@ -5,11 +5,14 @@
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/bio.h>
+#include "mtwister.h"
+#include <unistd.h>
+
 
 #define MAX_LINES 3 
 #define MAX_LINE_LENGTH 100
 
-int main(){
+int main(int argc, char *argv[]){
 
     // FILE * file=fopen("/tmp/password","r");
     // char lines[MAX_LINES][MAX_LINE_LENGTH];
@@ -18,7 +21,12 @@ int main(){
     //     lines_cnt++;
     // }
     // fclose(file);
-
+    if (strcmp(argv[1], "remote") == 0){
+        const char* home = getenv("HOME");
+        system("sudo scp -q -i ~/.ssh/id_rsa sergey@192.168.0.100:/pg/data/encrypted.bin /home/$(whoami)");
+        chdir(home);
+    }
+    
     FILE *fp = fopen("private.pem", "r");
     char key[2048];
     fread(key, 1, 2048, fp); // Чтение закрытого ключа из файла
@@ -28,7 +36,7 @@ int main(){
     BIO_free(bio);
 
     unsigned char encrypted[256];
-    FILE *in = fopen("/pg/data/encrypted.bin", "rb");
+    FILE *in = fopen("encrypted.bin", "rb");
     int encrypted_length = fread(encrypted, 1, 256, in); // Чтение из файла
     fclose(in);
 
@@ -56,7 +64,8 @@ int main(){
     //printf("\n%s\n", parameters[2]);
     int seed = atoi(parameters[0]);
     //printf("\n%d\n", seed);
-    srand(--seed);
+    //srand(--seed);
+    MTRand r = seedRand(--seed);
     char mask[strlen(parameters[2])];
     memcpy(mask, parameters[2], sizeof(parameters[2]));
     //printf("\n%s\n", parameters[2]);
@@ -76,32 +85,32 @@ int main(){
                     if(i<strlen(mask)){
                         char mask_char = mask[i];
                         if(mask_char=='9'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_9)-1);
                             result[i]=allowed_chars_9[idx];
                         }else
                         if(mask_char=='A'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_A)-1);
                             result[i]=allowed_chars_A[idx];
                         }else
                         if(mask_char=='a'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_a)-1);
                             result[i]=allowed_chars_a[idx];
                         }else
                         if(mask_char=='#'){
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars_Hash)-1);
                             result[i]=allowed_chars_Hash[idx];
                         }else{
-                            int rnd = rand();
+                            int rnd = genRandLong(&r);
                             int idx = rnd % (sizeof(allowed_chars)-1);
                             result[i]=allowed_chars[idx];
                         }
 
                     }else{
-                        int rnd = rand();
+                        int rnd = genRandLong(&r);
                         int idx = rnd % (sizeof(allowed_chars)-1);
                         result[i]=allowed_chars[idx];
                     }
